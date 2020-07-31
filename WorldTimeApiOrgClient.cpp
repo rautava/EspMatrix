@@ -1,13 +1,14 @@
-#include "WorldTimeApiOrgClient.h"
+#include "WorldTimeApiOrgClient.hpp"
 
-#include <iostream>
 #include <ArduinoJson.h>
 
 namespace
 {
   static const String HOST{"worldtimeapi.org"};
   static const int PORT = 80;
-  static const String BASE_URL{"/api/timezone/"};
+  static const String BASE_URL{"/api/timezone/{CONTINENT}/{CITY}"};
+  static const String CONTINENT_PLACEHOLDER{"{CONTINENT}"};
+  static const String CITY_PLACEHOLDER{"{CITY}"};
 } // namespace
 
 WorldTimeApiOrgClient::WorldTimeApiOrgClient(
@@ -15,8 +16,10 @@ WorldTimeApiOrgClient::WorldTimeApiOrgClient(
     const String &city)
     : _wifiClient{},
       _httpClient{},
-      _url{BASE_URL + continent + F("/") + city}
+      _url{BASE_URL}
 {
+  _url.replace(CONTINENT_PLACEHOLDER, continent);
+  _url.replace(CITY_PLACEHOLDER, city);
 }
 
 std::time_t WorldTimeApiOrgClient::fetchTime()
@@ -59,7 +62,6 @@ std::time_t WorldTimeApiOrgClient::parseResponse()
   if (error)
   {
     Serial.printf("Parse failed: %d\n", error.code());
-    Serial.println(_httpClient.getString());
     return unixTime;
   }
 

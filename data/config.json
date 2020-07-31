@@ -1,0 +1,15 @@
+{
+    "clock": {
+        "continent": "Europe",
+        "city": "Helsinki"
+    },
+    "weather": {
+        "apikey": "openweathermap_org_API_key",
+        "city": "Tampere"
+    },
+    "wifi": {
+        "ssid": "ssid",
+        "password": "password",
+        "hostname": "espmatrix"
+    }
+}

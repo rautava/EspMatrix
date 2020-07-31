@@ -1,7 +1,10 @@
-#include "ModServer.h"
+#include "ModServer.hpp"
 
-#include "ESP8266mDNS.h"
-#include "ESP8266WebServer.h"
+#include <ESP8266mDNS.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266WiFi.h>
+
+#include "JsonConfig.hpp"
 
 namespace
 {
@@ -32,16 +35,26 @@ namespace
 
 void ModServer::setup()
 {
-    MDNS.begin(F("espmatrix"));
-    MDNS.addService("_http", "_tcp", 80);
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        setupDone = true;
 
-    server.on("/", handleRoot);
-    server.onNotFound(handleNotFound);
-    server.begin();
+        MDNS.begin(F("espmatrix"));
+        MDNS.addService("_http", "_tcp", 80);
+
+        server.on("/", handleRoot);
+        server.onNotFound(handleNotFound);
+        server.begin();
+    }
 }
 
 void ModServer::loop()
 {
+    if (!setupDone)
+    {
+        setup();
+    }
+
     MDNS.update();
     server.handleClient();
 }

@@ -1,39 +1,39 @@
-#include "ModBrightness.h"
+#include "ModBrightness.hpp"
 
 #include <list>
 
-#include "Matrix.h"
-#include "PinConfig.h"
+#include "Display.hpp"
+#include "PinConfig.hpp"
 #include "ProtoThread.h"
 
 namespace
 {
     constexpr int ADC_MIN{100};
     constexpr int ADC_MAX{1024};
-    constexpr float COEFFICIENT{0.6321}; // (1-1/e)
+    constexpr double COEFFICIENT{0.6321}; // (1-1/e)
     constexpr int MEASUREMENTS_COUNT_MAX{5};
 
     std::list<int> measurements{};
 
-    int targetBrightness{Matrix::BRIGHTNESS_MIN};
-    float currentBrightness{Matrix::BRIGHTNESS_MIN};
+    int targetBrightness{Display::BRIGHTNESS_MIN};
+    double currentBrightness{Display::BRIGHTNESS_MIN};
 
     int getBrightness(int adcValue)
     {
         if (adcValue >= ADC_MAX)
         {
-            return Matrix::BRIGHTNESS_MAX;
+            return Display::BRIGHTNESS_MAX;
         }
         else if (adcValue <= ADC_MIN)
         {
-            return Matrix::BRIGHTNESS_MIN;
+            return Display::BRIGHTNESS_MIN;
         }
         else
         {
-            float adcRange = (float)ADC_MAX - (float)ADC_MIN;
-            float brightnessRange = (float)Matrix::BRIGHTNESS_MAX - (float)Matrix::BRIGHTNESS_MIN;
-            float x = (float)(adcValue - ADC_MIN) / adcRange;
-            float y = (float)Matrix::BRIGHTNESS_MIN + x * x * brightnessRange;
+            double adcRange = (double)ADC_MAX - (double)ADC_MIN;
+            double brightnessRange = (double)Display::BRIGHTNESS_MAX - (double)Display::BRIGHTNESS_MIN;
+            double x = (double)(adcValue - ADC_MIN) / adcRange;
+            double y = (double)Display::BRIGHTNESS_MIN + x * x * brightnessRange;
             return round(y);
         }
     }
@@ -55,19 +55,24 @@ namespace
             sum += value;
         }
 
-        return round((float)sum / measurements.size());
+        return round((double)sum / measurements.size());
     }
 } // namespace
 
-void ModBrightness::loop()
+void ModBrightness::show()
 {
     THREAD_INTERVAL(500);
 
+    auto oldValue = round(currentBrightness);
     auto adcValue = getMovingAverage();
     targetBrightness = getBrightness(adcValue);
 
-    float diff = (float)targetBrightness - currentBrightness;
+    double diff = (double)targetBrightness - currentBrightness;
     currentBrightness += COEFFICIENT * diff;
+    auto newValue = round(currentBrightness);
 
-    Matrix::matrix.setBrightness(round(currentBrightness));
+    if (newValue != oldValue)
+    {
+        Display::matrix.setBrightness(newValue);
+    }
 }

@@ -10,6 +10,7 @@ public:
 
     virtual void setup(){};
     virtual void loop(){};
+    virtual void show(){};
 
     using List = std::vector<ModuleIf *>;
 };

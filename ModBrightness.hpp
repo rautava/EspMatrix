@@ -1,9 +1,9 @@
 #pragma once
 
-#include "ModuleIf.h"
+#include "ModuleIf.hpp"
 
 class ModBrightness : public ModuleIf
 {
 public:
-    void loop() override;
+    void show() override;
 };

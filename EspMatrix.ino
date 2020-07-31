@@ -1,32 +1,48 @@
-#include "Matrix.h"
-#include "ModBrightness.h"
-#include "ModDisplay.h"
-#include "ModServer.h"
-#include "ModTime.h"
-#include "ModuleIf.h"
+#include <FS.h>
+
+#include "Display.hpp"
+#include "ModBrightness.hpp"
+#include "ModControl.hpp"
+#include "ModServer.hpp"
+#include "ModClock.hpp"
+#include "ModWeather.hpp"
+#include "ModWifiStatus.hpp"
+#include "ModuleIf.hpp"
 
 ModServer modServer{};
-ModDisplay modDisplay{};
+ModControl modControl{};
 ModBrightness modBrightness{};
-ModTime modTime{};
+ModClock modClock{};
+ModWeather modWeather{};
+ModWifiStatus modWifiStatus{};
 
 ModuleIf::List allModules{
     &modServer,
-    &modDisplay,
+    &modControl,
     &modBrightness,
-    &modTime};
+    &modClock,
+    &modWeather,
+    &modWifiStatus,
+};
+
+ModuleIf::List displayModules{
+    &modClock,
+    &modWeather,
+};
+
+ModuleIf *visibleModule{&modClock};
 
 void setup()
 {
   Serial.begin(115200);
-  Matrix::setup();
+  SPIFFS.begin();
+
+  Display::setup();
 
   for (auto module : allModules)
   {
     module->setup();
   }
-
-  modDisplay.setTimeModule(&modTime);
 }
 
 void loop()
@@ -35,4 +51,14 @@ void loop()
   {
     module->loop();
   }
+
+  modBrightness.show();
+
+  if (visibleModule)
+  {
+    visibleModule->show();
+  }
+
+  modWifiStatus.show();
+  Display::matrix.show();
 }
